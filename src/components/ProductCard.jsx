@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiShoppingCart, FiEye } from 'react-icons/fi'
 import { useCart } from '../context/CartContext'
+import { formatPrice } from '../utils/formatters'
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart()
@@ -21,7 +22,15 @@ export default function ProductCard({ product }) {
     ''
 
   function handleAddToCart() {
-    addItem(product, {
+    const forCart = {
+      ...product,
+      price: product.price || 0,
+      discountPrice: product.discountPrice || null,
+      currency: product.currency || 'EGP',
+      selectedImage: image,
+    }
+
+    addItem(forCart, {
       quantity: 1,
       color: selectedColor?.arabicName,
       size: product.sizes?.[0] || null,
@@ -39,10 +48,14 @@ export default function ProductCard({ product }) {
     >
       <div className="relative overflow-hidden">
         <Link to={`/product/${product.id}`}>
-          <img
+          <motion.img
+            key={image}
             src={image}
             alt={product.name}
-            className="h-72 w-full object-cover transition duration-500 hover:scale-105"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.35 }}
+            className="h-80 w-full object-cover transition-transform duration-500 hover:scale-105"
           />
         </Link>
 
@@ -53,7 +66,7 @@ export default function ProductCard({ product }) {
         )}
       </div>
 
-      <div className="p-5 text-right">
+      <div className="p-6 text-right">
         <p className="text-xs text-gray-500">
           {product.category}
         </p>
@@ -64,52 +77,51 @@ export default function ProductCard({ product }) {
           </h3>
         </Link>
 
-        <p className="mt-3 text-sm leading-7 text-gray-600">
+        <p className="mt-3 text-sm leading-7 text-gray-600 line-clamp-3">
           {product.description}
         </p>
 
         {/* colors */}
-        <div className="mt-4 flex justify-end gap-2">
-          {product.colors?.map((color) => (
-            <button
-              key={color.name}
-              onClick={() =>
-                setSelectedColor(color)
-              }
-              className={`h-7 w-7 rounded-full border-2 transition ${
-                selectedColor?.name ===
-                color.name
-                  ? 'border-[#bea642] scale-110'
-                  : 'border-gray-300'
-              }`}
-              style={{
-                backgroundColor:
-                  color.hex,
-              }}
-            />
-          ))}
+        <div className="mt-4 flex justify-end gap-3">
+          {product.colors?.map((color) => {
+            const isLight = ['#fff', '#ffffff', '#fffaf2'].includes((color.hex || '').toLowerCase())
+            return (
+              <button
+                key={color.name}
+                onClick={() => setSelectedColor(color)}
+                aria-label={`اختار ${color.name}`}
+                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-shadow duration-150 ${
+                  selectedColor?.name === color.name
+                    ? 'ring-2 ring-[#bea642] scale-110 shadow-md'
+                    : 'border-gray-200'
+                }`}
+                style={{
+                  backgroundColor: color.hex,
+                  borderColor: isLight ? '#e5e7eb' : undefined,
+                }}
+              />
+            )
+          })}
         </div>
 
         <div className="mt-5 flex items-center justify-between">
-          <div className="text-lg font-bold text-[#4a5225]">
+          <div className="text-lg font-bold text-[#111827]">
             {product.discountPrice ? (
               <>
                 <span>
-                  {
-                    product.discountPrice
-                  }{' '}
-                  {product.currency}
+                  {formatPrice(product.discountPrice, product.currency || 'EGP')}
                 </span>
 
                 <span className="mr-2 text-sm text-gray-400 line-through">
-                  {product.price}
+                  {formatPrice(product.price, product.currency || 'EGP')}
                 </span>
               </>
-            ) : (
+            ) : product.price && product.price > 0 ? (
               <>
-                {product.price}{' '}
-                {product.currency}
+                {formatPrice(product.price, product.currency || 'EGP')}
               </>
+            ) : (
+              <span className="text-sm text-gray-500">سعر عند الطلب</span>
             )}
           </div>
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { FiShoppingCart, FiMenu } from 'react-icons/fi'
+import { FiShoppingCart, FiMenu, FiSearch, FiUser } from 'react-icons/fi'
 import img from '../assets/logo.png'
 
 export default function Navbar() {

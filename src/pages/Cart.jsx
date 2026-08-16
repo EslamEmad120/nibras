@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import QuantitySelector from '../components/QuantitySelector'
 import EmptyState from '../components/EmptyState'
+import { formatPrice } from '../utils/formatters'
 
 export default function Cart() {
   const {
@@ -110,8 +111,7 @@ export default function Cart() {
 
                   <div className="text-left">
                     <p className="text-2xl font-bold text-[#4a5225]">
-                      {(item.discountPrice || item.price) * item.quantity}{' '}
-                      {item.currency}
+                      {formatPrice((item.discountPrice || item.price) * item.quantity, item.currency || 'EGP')}
                     </p>
                   </div>
 
@@ -129,19 +129,19 @@ export default function Cart() {
             <div className="space-y-5 text-gray-600">
               <div className="flex justify-between">
                 <span>المجموع الفرعي</span>
-                <span>{subtotal} ريال</span>
+                <span>{formatPrice(subtotal, 'EGP')}</span>
               </div>
 
               <div className="flex justify-between">
                 <span>الشحن</span>
-                <span>{delivery} ريال</span>
+                <span>{formatPrice(delivery, 'EGP')}</span>
               </div>
 
               <hr />
 
               <div className="flex justify-between text-xl font-bold text-[#4a5225]">
                 <span>الإجمالي</span>
-                <span>{total} ريال</span>
+                <span>{formatPrice(total, 'EGP')}</span>
               </div>
             </div>
 

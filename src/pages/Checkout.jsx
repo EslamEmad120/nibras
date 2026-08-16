@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { createOrder } from '../services/ordersService'
 import { BRAND } from '../config/config'
+import { formatPrice } from '../utils/formatters'
 
 export default function Checkout() {
   const {
@@ -64,9 +65,9 @@ export default function Checkout() {
       lines.push(`المدينة: ${form.city || '-'}`)
       lines.push(`ملاحظات: ${form.notes || '-'}`)
       lines.push('')
-      lines.push(`إجمالي المنتجات: ${subtotal} SAR`)
-      lines.push(`رسوم الشحن: ${delivery} SAR`)
-      lines.push(`الإجمالي النهائي: ${total} SAR`)
+      lines.push(`إجمالي المنتجات: ${formatPrice(subtotal, 'EGP')}`)
+      lines.push(`رسوم الشحن: ${formatPrice(delivery, 'EGP')}`)
+      lines.push(`الإجمالي النهائي: ${formatPrice(total, 'EGP')}`)
 
       const message = encodeURIComponent(
         lines.join('\n')
@@ -179,19 +180,19 @@ export default function Checkout() {
             <div className="space-y-4">
               <div className="flex justify-between text-gray-600">
                 <span>إجمالي المنتجات</span>
-                <span>{subtotal} SAR</span>
+                <span>{formatPrice(subtotal, 'EGP')}</span>
               </div>
 
               <div className="flex justify-between text-gray-600">
                 <span>رسوم الشحن</span>
-                <span>{delivery} SAR</span>
+                <span>{formatPrice(delivery, 'EGP')}</span>
               </div>
 
               <hr className="border-[#e5dcc3]" />
 
               <div className="flex justify-between text-xl font-bold text-[#4a5225]">
                 <span>الإجمالي النهائي</span>
-                <span>{total} SAR</span>
+                <span>{formatPrice(total, 'EGP')}</span>
               </div>
             </div>
           </div>

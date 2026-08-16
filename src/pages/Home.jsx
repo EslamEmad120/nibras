@@ -1,14 +1,109 @@
-import { useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
-import sampleProducts from '../data/sampleProducts'
+import { fetchProducts } from '../services/productsService'
 import { setTitle } from '../utils/seo'
+import home from '../assets/home.jpeg'
+
+function AnimatedCounter({ value, prefix = '', suffix = '', duration = 1200 }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, amount: 0.6 })
+  const prefersReducedMotion = useReducedMotion()
+  const [display, setDisplay] = useState(0)
+
+  useEffect(() => {
+    if (!isInView) return
+
+    if (prefersReducedMotion) {
+      setDisplay(value)
+      return
+    }
+
+    let startTime = null
+    let frame = null
+
+    function step(timestamp) {
+      if (startTime === null) startTime = timestamp
+      const progress = Math.min((timestamp - startTime) / duration, 1)
+      const eased = 1 - (1 - progress) ** 3
+      setDisplay(Math.round(value * eased))
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(step)
+      }
+    }
+
+    frame = requestAnimationFrame(step)
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [duration, isInView, prefersReducedMotion, value])
+
+  return <span ref={ref}>{prefix}{display}{suffix}</span>
+}
+
+function TypewriterText({ phrases }) {
+  const prefersReducedMotion = useReducedMotion()
+  const [text, setText] = useState('')
+  const [phraseIndex, setPhraseIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setText(phrases[phraseIndex])
+      return
+    }
+
+    const currentPhrase = phrases[phraseIndex]
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        const nextText = currentPhrase.slice(0, text.length + 1)
+        setText(nextText)
+
+        if (nextText === currentPhrase) {
+          setTimeout(() => setIsDeleting(true), 1400)
+        }
+      } else {
+        const nextText = currentPhrase.slice(0, text.length - 1)
+        setText(nextText)
+
+        if (nextText === '') {
+          setIsDeleting(false)
+          setPhraseIndex((prev) => (prev + 1) % phrases.length)
+        }
+      }
+    }, isDeleting ? 60 : 110)
+
+    return () => clearTimeout(timeout)
+  }, [isDeleting, phraseIndex, prefersReducedMotion, phrases, text])
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span>{text}</span>
+      <span className="inline-block h-8 w-[2px] animate-pulse bg-[#bea642] align-middle md:h-10" aria-hidden="true" />
+    </span>
+  )
+}
 
 export default function Home() {
-  const featuredProducts = sampleProducts
-    .filter((p) => p.featured)
-    .slice(0, 4)
+  const [featuredProducts, setFeatured] = useState([])
+
+  useEffect(() => {
+    let mounted = true
+
+    fetchProducts().then((res) => {
+      if (!mounted) return
+
+      setFeatured(res.slice(0, 4))
+    })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   useEffect(() => {
     setTitle('نبراس | الرئيسية')
@@ -24,22 +119,23 @@ export default function Home() {
         <div className="relative mx-auto flex min-h-[85vh] max-w-7xl items-center px-6 py-16 lg:px-8">
           <div className="grid w-full items-center gap-14 lg:grid-cols-2">
 
-            {/* Image */}
+            {/* HERO IMAGE */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
             >
+              {/*  */}
               <div className="overflow-hidden rounded-[40px] shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
                 <img
-                  src={featuredProducts[0]?.colors?.[0]?.image}
+                  src={home}
                   alt="Nebras"
                   className="h-[650px] w-full object-cover"
                 />
               </div>
             </motion.div>
 
-            {/* Content */}
+            {/* HERO CONTENT */}
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
@@ -50,10 +146,12 @@ export default function Home() {
                 NEW COLLECTION 2026
               </span>
 
-              <h1 className="mt-8 text-5xl font-bold leading-tight text-[#4a5225] lg:text-7xl">
+              <h1 className="mt-8 text-5xl font-bold leading-tight text-[#4a5225] lg:text-6xl">
                 أناقة الرجال
                 <br />
-                تبدأ من التفاصيل
+                <span className="inline-flex min-h-[30px] items-center text-[#bea642]">
+                  <TypewriterText phrases={[' تبدأ من التفاصيل', 'ستايل يعكس شخصيتك', 'هوية عربية بروح عصرية']} />
+                </span>
               </h1>
 
               <p className="mt-8 max-w-2xl text-lg leading-9 text-gray-600">
@@ -65,46 +163,61 @@ export default function Home() {
               <div className="mt-10 flex flex-wrap justify-end gap-4">
                 <Link
                   to="/shop"
-                  className="rounded-full bg-[#4a5225] px-8 py-4 font-semibold text-white transition hover:bg-[#bea642]"
+                  className="rounded-full bg-[#4a5225] px-8 py-4 font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-[#bea642]"
                 >
                   تسوق الآن
                 </Link>
 
                 <Link
                   to="/about"
-                  className="rounded-full border border-[#bea642] px-8 py-4 font-semibold text-[#4a5225] transition hover:bg-[#bea642] hover:text-white"
+                  className="rounded-full border border-[#bea642] px-8 py-4 font-semibold text-[#4a5225] transition duration-300 hover:-translate-y-0.5 hover:bg-[#bea642] hover:text-white"
                 >
                   تعرف علينا
                 </Link>
               </div>
 
               <div className="mt-12 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-3xl bg-white p-5 text-center shadow-sm">
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.45 }}
+                  className="rounded-3xl bg-white p-5 text-center shadow-sm"
+                >
                   <h3 className="text-3xl font-bold text-[#4a5225]">
-                    +500
+                    <AnimatedCounter value={500} prefix="+" />
                   </h3>
-                  <p className="mt-2 text-sm text-gray-500">
-                    عميل سعيد
-                  </p>
-                </div>
 
-                <div className="rounded-3xl bg-white p-5 text-center shadow-sm">
-                  <h3 className="text-3xl font-bold text-[#4a5225]">
-                    100%
-                  </h3>
-                  <p className="mt-2 text-sm text-gray-500">
-                    خامات عالية الجودة
-                  </p>
-                </div>
+                  <p className="mt-2 text-sm text-gray-500">عميل سعيد</p>
+                </motion.div>
 
-                <div className="rounded-3xl bg-white p-5 text-center shadow-sm">
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.45, delay: 0.08 }}
+                  className="rounded-3xl bg-white p-5 text-center shadow-sm"
+                >
                   <h3 className="text-3xl font-bold text-[#4a5225]">
-                    24H
+                    <AnimatedCounter value={100} suffix="%" />
                   </h3>
-                  <p className="mt-2 text-sm text-gray-500">
-                    تجهيز سريع للطلبات
-                  </p>
-                </div>
+
+                  <p className="mt-2 text-sm text-gray-500">خامات عالية الجودة</p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.45, delay: 0.16 }}
+                  className="rounded-3xl bg-white p-5 text-center shadow-sm"
+                >
+                  <h3 className="text-3xl font-bold text-[#4a5225]">
+                    <AnimatedCounter value={24} suffix="H" />
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-500">تجهيز سريع للطلبات</p>
+                </motion.div>
               </div>
             </motion.div>
 
@@ -147,6 +260,7 @@ export default function Home() {
               عرض جميع المنتجات
             </Link>
           </div>
+
         </div>
       </section>
 
@@ -158,10 +272,10 @@ export default function Home() {
 
             <div>
               <img
-  src="https://images.unsplash.com/photo-1617113930975-f9c7243ae527?auto=format&fit=crop&w=1400&q=80"
-  alt="Business Man"
-  className="rounded-[40px] shadow-lg"
-/>
+                src="https://images.unsplash.com/photo-1617113930975-f9c7243ae527?auto=format&fit=crop&w=1400&q=80"
+                alt="Business Man"
+                className="rounded-[40px] shadow-lg"
+              />
             </div>
 
             <div className="text-right">
@@ -191,12 +305,14 @@ export default function Home() {
             </div>
 
           </div>
+
         </div>
       </section>
 
       {/* CTA */}
       <section className="py-24">
         <div className="mx-auto max-w-6xl px-6">
+
           <div className="rounded-[40px] bg-[#4a5225] px-8 py-20 text-center text-white">
 
             <span className="text-sm uppercase tracking-[0.3em] text-[#bea642]">
@@ -220,6 +336,7 @@ export default function Home() {
             </Link>
 
           </div>
+
         </div>
       </section>
 

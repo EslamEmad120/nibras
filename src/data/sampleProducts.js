@@ -4,15 +4,15 @@ const sampleProducts = [
     name: 'Arabic Tee',
     arabicName: 'تيشيرت عربي',
     description: 'تيشيرت مصنوع من قطن ممتاز مع نقش عربي أنيق.',
-    price: 199,
-    discountPrice: 149,
+    price: 300,
+    discountPrice: 249,
     category: 'T-Shirts',
     sizes: ['S', 'M', 'L', 'XL'],
     stock: 50,
     featured: true,
     bestSeller: true,
     createdAt: Date.now(),
-    currency: 'SAR',
+    currency: 'EGP',
 
     colors: [
       {
@@ -51,7 +51,7 @@ const sampleProducts = [
     name: 'Nebras Hoodie',
     arabicName: 'هودي نبراس',
     description: 'هودي دافئ بتصميم نبراس المميز.',
-    price: 349,
+    price: 300,
     discountPrice: null,
     category: 'Hoodies',
     sizes: ['M', 'L', 'XL'],
@@ -59,7 +59,7 @@ const sampleProducts = [
     featured: true,
     bestSeller: false,
     createdAt: Date.now(),
-    currency: 'SAR',
+    currency: 'EGP',
 
     colors: [
       {
@@ -84,15 +84,15 @@ const sampleProducts = [
     name: 'Calligraphy Cap',
     arabicName: 'كاب بخط عربي',
     description: 'كاب خفيف مع تطريز خط عربي.',
-    price: 79,
-    discountPrice: 59,
+    price: 300,
+    discountPrice: 250,
     category: 'Caps',
     sizes: ['ONE'],
     stock: 100,
     featured: false,
     bestSeller: true,
     createdAt: Date.now(),
-    currency: 'SAR',
+    currency: 'EGP',
 
     colors: [
       {

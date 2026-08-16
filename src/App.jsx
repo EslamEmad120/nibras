@@ -17,7 +17,7 @@ import NotFound from './pages/NotFound'
 
 function Layout() {
   return (
-    <div dir="rtl" className="min-h-screen flex flex-col bg-transparent text-[#f7f1ff]">
+    <div dir="rtl" className="min-h-screen flex flex-col bg-transparent text-[#111827]">
       <Navbar />
       <main className="flex-1">
         <Outlet />
