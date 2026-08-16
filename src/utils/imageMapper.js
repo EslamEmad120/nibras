@@ -1,62 +1,81 @@
-// Utility to map local product images into grouped products by filename prefix
-// Uses Vite's import.meta.glob to bundle images.
+// Static Cloudinary image mapping for products. Replaces dynamic import.meta.glob usage.
+// Ensures every image is a plain string (Cloudinary HTTPS URL) and preserves
+// getImageGroups() and findGroupForProduct() APIs used across the app.
 
-const imgModules = import.meta.glob('../assets/images/*', { eager: true, as: 'url' })
+const PRODUCT_IMAGES = {
+  t1: [
+    {
+      file: 't1-DlAY5GUW_dajxt1.jpg',
+      color: 'Default',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909168/t1-DlAY5GUW_dajxt1.jpg',
+    },
+  ],
 
-function parseName(name) {
-  // strip extension
-  const base = name.replace(/\.[^/.]+$/, '')
+  t2: [
+    {
+      file: 't2-FP3rqqo1_pjvsn9.jpg',
+      color: 'Default',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909168/t2-FP3rqqo1_pjvsn9.jpg',
+    },
+  ],
 
-  // match prefix and optional color suffix starting with uppercase (e.g., t3Black)
-  const m = base.match(/^([a-zA-Z0-9_-]+?)([A-Z][A-Za-z0-9_-]*)?$/)
-  if (!m) return { prefix: base, color: 'Default' }
-  return { prefix: m[1], color: m[2] || 'Default' }
+  t3: [
+    {
+      file: 't3Black-D6r4rxKy_grntpl.jpg',
+      color: 'Black',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909168/t3Black-D6r4rxKy_grntpl.jpg',
+    },
+    {
+      file: 't3Blue-C4C4Ra2v_mqpbdg.jpg',
+      color: 'Blue',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909168/t3Blue-C4C4Ra2v_mqpbdg.jpg',
+    },
+  ],
+
+  t4: [
+    {
+      file: 't4Black-CVzshQ6E_iltosw.jpg',
+      color: 'Black',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909168/t4Black-CVzshQ6E_iltosw.jpg',
+    },
+    {
+      file: 't4White-CAwcnE9L_gtk1w3.jpg',
+      color: 'White',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909169/t4White-CAwcnE9L_gtk1w3.jpg',
+    },
+  ],
+
+  t5: [
+    {
+      file: 't5-zncMu2FO_mnaqg1.jpg',
+      color: 'Default',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909168/t5-zncMu2FO_mnaqg1.jpg',
+    },
+  ],
 }
 
 export function getImageGroups() {
-  const groups = {}
-
-  Object.entries(imgModules).forEach(([path, url]) => {
-    const parts = path.split('/')
-    const file = parts[parts.length - 1]
-    const { prefix, color } = parseName(file)
-
-    if (!groups[prefix]) groups[prefix] = []
-
-    groups[prefix].push({
-      file,
-      color,
-      src: url,
-    })
-  })
-
-  // sort colors for deterministic order
-  Object.values(groups).forEach((arr) =>
-    arr.sort((a, b) => a.file.localeCompare(b.file)),
-  )
-
-  return groups
+  // return a shallow copy to avoid accidental mutation by callers
+  return { ...PRODUCT_IMAGES }
 }
 
-// Try to find a matching group for a product by internal product key/id only.
 export function findGroupForProduct(product) {
+  if (!product?.id) return null
+
   const groups = getImageGroups()
-  const keys = Object.keys(groups)
 
-  for (const k of keys) {
-    if (product.id && product.id.toLowerCase().includes(k.toLowerCase())) {
-      return { key: k, images: groups[k] }
-    }
+  // match product id exactly (case-insensitive) to avoid creating separate products
+  const key = Object.keys(groups).find((k) => k.toLowerCase() === (product.id || '').toLowerCase())
+
+  if (!key) return null
+
+  return {
+    key,
+    images: groups[key],
   }
-
-  // fallback: if there's a short key that appears in id
-  for (const k of keys) {
-    if (k.length <= 3 && (product.id || '').toLowerCase().includes(k.toLowerCase())) {
-      return { key: k, images: groups[k] }
-    }
-  }
-
-  return null
 }
 
-export default { getImageGroups, findGroupForProduct }
+export default {
+  getImageGroups,
+  findGroupForProduct,
+}

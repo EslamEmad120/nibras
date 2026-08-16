@@ -71,6 +71,13 @@ function filterAndMapProducts(products) {
 const PRODUCTS_COLLECTION = 'products'
 
 export async function fetchProducts() {
+  // If Firestore was not initialized (missing env/config), fall back to sampleProducts.
+  if (!db) {
+    // Avoid attempting to call collection() with an invalid db reference which causes
+    // FirebaseError: Expected first argument to collection() to be a CollectionReference...
+    return filterAndMapProducts(sampleProducts)
+  }
+
   try {
     const q = query(collection(db, PRODUCTS_COLLECTION), orderBy('createdAt', 'desc'))
     const snap = await getDocs(q)
