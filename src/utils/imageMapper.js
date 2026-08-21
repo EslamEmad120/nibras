@@ -51,6 +51,11 @@ const PRODUCT_IMAGES = {
       color: 'Default',
       src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1786909168/t5-zncMu2FO_mnaqg1.jpg',
     },
+    {
+      file: 't5Blue_nd0889.jpg',
+      color: 'Blue',
+      src: 'https://res.cloudinary.com/dillnn4li/image/upload/v1787346744/t5Blue_nd0889.jpg',
+    },
   ],
 }
 
